@@ -52,6 +52,19 @@ function AuthProvider(props: AuthProviderProps): JSX.Element {
     return userData
   }
 
+  // Convert API response to TokensData format
+  const convertTokenResponse = (response: {
+    accessToken: string
+    accessTokenExpiresAt: string
+    refreshToken: string
+    refreshTokenExpiresAt: string
+  }): TokensData => ({
+    access: response.accessToken,
+    accessExpiresAt: response.accessTokenExpiresAt,
+    refresh: response.refreshToken,
+    refreshExpiresAt: response.refreshTokenExpiresAt
+  });
+
   // Handle initial tokens loading
   useEffect(() => {
     const loadInitialTokens = async () => {
@@ -91,9 +104,26 @@ function AuthProvider(props: AuthProviderProps): JSX.Element {
   const contextValue: Auth = {
     currentUser,
     tokens,
-    login(credentials) {
-      const {email, password} = credentials
-      return Promise.reject(new Error('Not yet implemented'))
+    async login(credentials) {
+      if (currentUser) {
+        throw new Error('User is already logged in')
+      }
+
+      const loginResponse = await fetcher('POST /v3/auth/login', {
+        data: credentials
+      })
+
+      if (!loginResponse.ok) {
+        throw new Error(loginResponse.data.message)
+      }
+
+      // Convert and store tokens
+      const newTokens = convertTokenResponse(loginResponse.data)
+      setTokens(newTokens)
+
+      // Fetch and store user data
+      const userData = await fetchUserData();
+      setCurrentUser(userData);
     },
     logout() {
       return Promise.reject(new Error('Not yet implemented'))
