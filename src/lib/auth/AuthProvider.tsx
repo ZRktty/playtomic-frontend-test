@@ -35,8 +35,12 @@ function AuthProvider(props: AuthProviderProps): ReactNode {
   const fetcher = useApiFetcher();
 
   // Fetch user data using the access token
-  const fetchUserData = async (): Promise<UserData> => {
-    const response = await fetcher('GET /v1/users/me', {})
+  const fetchUserData = async (accessToken: string): Promise<UserData> => {
+    const response = await fetcher('GET /v1/users/me', {}, {
+      headers: {
+        'authorization': `Bearer ${accessToken}`
+      }
+    })
 
     if (!response.ok) {
       throw new Error(response.data.message);
@@ -72,7 +76,7 @@ function AuthProvider(props: AuthProviderProps): ReactNode {
 
         // If we have tokens, fetch the user data
         if (initialTokensValue) {
-          const userData = await fetchUserData()
+          const userData = await fetchUserData(initialTokensValue.access)
           setCurrentUser(userData)
         } else {
           setCurrentUser(null)
