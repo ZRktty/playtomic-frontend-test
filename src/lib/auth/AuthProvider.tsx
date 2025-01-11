@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useEffect, useState } from 'react'
+import { createContext, ReactNode, useCallback, useEffect, useState} from 'react'
 import { Auth, AuthInitializeConfig, TokensData, UserData } from './types'
 import { useApiFetcher } from "@/lib/api";
 import { User } from "@/lib/api-types";
@@ -27,7 +27,7 @@ AuthContext.displayName = 'AuthContext';
  * This allow separate calls of `useAuth` to communicate among each-other and share
  * a single source of truth.
  */
-function AuthProvider(props: AuthProviderProps): JSX.Element {
+function AuthProvider(props: AuthProviderProps): ReactNode {
   const { initialTokens, onAuthChange, children } = props
 
   const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined);
@@ -98,6 +98,26 @@ function AuthProvider(props: AuthProviderProps): JSX.Element {
     }
   }, [tokens, onAuthChange])
 
+  const logout = useCallback((): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      try {
+        // Clear authentication tokens
+        setTokens(null);
+        setCurrentUser(null);
+
+        // Notify any listeners about the auth state change
+        if (onAuthChange) {
+          onAuthChange(null);
+        }
+
+        resolve();
+      } catch (error) {
+        console.error('Failed to logout:', error);
+        reject(new Error('Failed to logout'));
+      }
+    });
+  }, [onAuthChange]);
+
   const contextValue: Auth = {
     currentUser,
     tokens,
@@ -122,9 +142,7 @@ function AuthProvider(props: AuthProviderProps): JSX.Element {
       const userData = await fetchUserData();
       setCurrentUser(userData);
     },
-    logout() {
-      return Promise.reject(new Error('Not yet implemented'));
-    },
+    logout
   }
   return (
     <AuthContext.Provider value={contextValue}>
