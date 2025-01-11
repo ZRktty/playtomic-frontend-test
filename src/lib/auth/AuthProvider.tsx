@@ -30,26 +30,24 @@ AuthContext.displayName = 'AuthContext';
 function AuthProvider(props: AuthProviderProps): JSX.Element {
   const { initialTokens, onAuthChange, children } = props
 
-  const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined)
-  const [tokens, setTokens] = useState<TokensData | null | undefined>(undefined)
-  const fetcher = useApiFetcher()
+  const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined);
+  const [tokens, setTokens] = useState<TokensData | null | undefined>(undefined);
+  const fetcher = useApiFetcher();
 
   // Fetch user data using the access token
   const fetchUserData = async (): Promise<UserData> => {
     const response = await fetcher('GET /v1/users/me', {})
 
     if (!response.ok) {
-      throw new Error(response.data.message)
+      throw new Error(response.data.message);
     }
 
     const user: User = response.data
-    const userData: UserData = {
+    return {
       userId: user.userId,
       name: user.displayName,
       email: user.email ?? '', // user might not have an email , so default to empty string
-    }
-
-    return userData
+    };
   }
 
   // Convert API response to TokensData format
@@ -100,7 +98,6 @@ function AuthProvider(props: AuthProviderProps): JSX.Element {
     }
   }, [tokens, onAuthChange])
 
-
   const contextValue: Auth = {
     currentUser,
     tokens,
@@ -126,7 +123,7 @@ function AuthProvider(props: AuthProviderProps): JSX.Element {
       setCurrentUser(userData);
     },
     logout() {
-      return Promise.reject(new Error('Not yet implemented'))
+      return Promise.reject(new Error('Not yet implemented'));
     },
   }
   return (
