@@ -1,5 +1,7 @@
-import { ReactNode } from 'react'
-import { AuthInitializeConfig } from './types'
+import { createContext, ReactNode, useEffect, useState } from 'react'
+import { Auth, AuthInitializeConfig, TokensData, UserData } from './types'
+import { useApiFetcher } from "@/lib/api";
+import { User } from "@/lib/api-types";
 
 interface AuthProviderProps extends AuthInitializeConfig {
   children?: ReactNode
@@ -15,6 +17,10 @@ interface AuthProviderProps extends AuthInitializeConfig {
   onAuthChange?: AuthInitializeConfig['onAuthChange']
 }
 
+
+const AuthContext = createContext<Auth | undefined>(undefined);
+AuthContext.displayName = 'AuthContext';
+
 /**
  * Initializes the auth state and exposes it to the component-tree below.
  *
@@ -24,9 +30,76 @@ interface AuthProviderProps extends AuthInitializeConfig {
 function AuthProvider(props: AuthProviderProps): JSX.Element {
   const { initialTokens, onAuthChange, children } = props
 
+  const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined)
+  const [tokens, setTokens] = useState<TokensData | null | undefined>(undefined)
+  const fetcher = useApiFetcher()
+
+  // Fetch user data using the access token
+  const fetchUserData = async (): Promise<UserData> => {
+    const response = await fetcher('GET /v1/users/me', {})
+
+    if (!response.ok) {
+      throw new Error(response.data.message)
+    }
+
+    const user: User = response.data
+    const userData: UserData = {
+      userId: user.userId,
+      name: user.displayName,
+      email: user.email ?? '', // user might not have an email , so default to empty string
+    }
+
+    return userData
+  }
+
+  // Handle initial tokens loading
+  useEffect(() => {
+    const loadInitialTokens = async () => {
+      try {
+        const initialTokensValue = await initialTokens
+        setTokens(initialTokensValue ?? null)
+
+        // If we have tokens, fetch the user data
+        if (initialTokensValue) {
+          const userData = await fetchUserData()
+          setCurrentUser(userData)
+        } else {
+          setCurrentUser(null)
+        }
+      } catch (error) {
+        console.error('Failed to load initial tokens:', error)
+        setTokens(null)
+        setCurrentUser(null)
+      }
+    }
+
+    loadInitialTokens();
+  }, [initialTokens])
+
+  // Handle auth changes
+  useEffect(() => {
+    if (tokens !== undefined && onAuthChange) {
+      onAuthChange(tokens)
+    }
+  }, [tokens, onAuthChange])
+
+
+  const contextValue: Auth = {
+    currentUser,
+    tokens,
+    login(credentials) {
+      const {email, password} = credentials
+      return Promise.reject(new Error('Not yet implemented'))
+    },
+    logout() {
+      return Promise.reject(new Error('Not yet implemented'))
+    },
+  }
   return (
-    <>{children}</>
+    <AuthContext.Provider value={contextValue}>
+      {children}
+    </AuthContext.Provider>
   )
 }
 
-export { AuthProvider, type AuthProviderProps }
+export {AuthProvider, AuthContext, type AuthProviderProps}
