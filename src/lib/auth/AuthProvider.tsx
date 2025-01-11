@@ -73,7 +73,11 @@ function AuthProvider(props: AuthProviderProps): JSX.Element {
       }
     }
 
-    loadInitialTokens();
+    loadInitialTokens().catch(error => {
+      console.error('Failed to load initial auth state:', error)
+      setTokens(null)
+      setCurrentUser(null)
+    })
   }, [initialTokens])
 
   // Handle auth changes
