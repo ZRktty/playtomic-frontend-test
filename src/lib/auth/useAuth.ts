@@ -1,6 +1,6 @@
 import { Auth } from './types'
 import { useContext } from "react";
-import { AuthContext } from "@/lib/auth/AuthProvider.tsx";
+import { AuthContext } from "@/lib/auth/AuthContext.ts";
 
 /**
  * Returns the current auth state. See {@link Auth} for more information on

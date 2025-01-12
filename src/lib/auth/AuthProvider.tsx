@@ -1,7 +1,9 @@
-import { createContext, ReactNode, useCallback, useEffect, useState} from 'react'
+import { ReactNode, useCallback, useEffect, useState} from 'react'
 import { Auth, AuthInitializeConfig, TokensData, UserData } from './types'
 import { useApiFetcher } from "@/lib/api";
-import { User } from "@/lib/api-types";
+import { useFetchUserData } from "@/lib/auth/hooks/useFetchUserData.ts";
+import { AuthContext } from "./AuthContext.ts";
+import { convertTokenResponse } from "@/lib/auth/utils.ts";
 
 interface AuthProviderProps extends AuthInitializeConfig {
   children?: ReactNode
@@ -17,10 +19,6 @@ interface AuthProviderProps extends AuthInitializeConfig {
   onAuthChange?: AuthInitializeConfig['onAuthChange']
 }
 
-
-const AuthContext = createContext<Auth | undefined>(undefined);
-AuthContext.displayName = 'AuthContext';
-
 /**
  * Initializes the auth state and exposes it to the component-tree below.
  *
@@ -30,44 +28,10 @@ AuthContext.displayName = 'AuthContext';
 function AuthProvider(props: AuthProviderProps): ReactNode {
   const { initialTokens, onAuthChange, children } = props
 
+  const fetcher = useApiFetcher();
+  const fetchUserData = useFetchUserData();
   const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined);
   const [tokens, setTokens] = useState<TokensData | null | undefined>(undefined);
-  const fetcher = useApiFetcher();
-
-  // Fetch user data using the access token
-  const fetchUserData = useCallback(async (accessToken?: string): Promise<UserData> => {
-    const headers: Record<string, string> = {};
-    if (accessToken) {
-      // eslint-disable-next-line @typescript-eslint/dot-notation
-      headers['authorization'] = `Bearer ${accessToken}`;
-    }
-
-    const response = await fetcher('GET /v1/users/me', {}, { headers });
-
-    if (!response.ok) {
-      throw new Error(response.data.message);
-    }
-
-    const user: User = response.data
-    return {
-      userId: user.userId,
-      name: user.displayName,
-      email: user.email ?? '', // user might not have an email , so default to empty string
-    };
-  }, [fetcher]);
-
-  // Convert API response to TokensData format
-  const convertTokenResponse = (response: {
-    accessToken: string
-    accessTokenExpiresAt: string
-    refreshToken: string
-    refreshTokenExpiresAt: string
-  }): TokensData => ({
-    access: response.accessToken,
-    accessExpiresAt: response.accessTokenExpiresAt,
-    refresh: response.refreshToken,
-    refreshExpiresAt: response.refreshTokenExpiresAt
-  });
 
   // Handle initial tokens loading
   useEffect(() => {
@@ -145,7 +109,7 @@ function AuthProvider(props: AuthProviderProps): ReactNode {
       setTokens(newTokens)
 
       // Fetch and store user data
-      const userData = await fetchUserData();
+      const userData = await fetchUserData(newTokens.access);
       setCurrentUser(userData);
     },
     logout
@@ -157,4 +121,4 @@ function AuthProvider(props: AuthProviderProps): ReactNode {
   )
 }
 
-export {AuthProvider, AuthContext, type AuthProviderProps}
+export {AuthProvider, type AuthProviderProps}
