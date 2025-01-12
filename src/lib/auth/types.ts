@@ -130,4 +130,6 @@ interface TokensData {
 export {
   type Auth,
   type AuthInitializeConfig,
+  type TokensData,
+  type UserData
 }
