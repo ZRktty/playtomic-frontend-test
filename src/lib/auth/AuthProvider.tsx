@@ -35,12 +35,14 @@ function AuthProvider(props: AuthProviderProps): ReactNode {
   const fetcher = useApiFetcher();
 
   // Fetch user data using the access token
-  const fetchUserData = async (accessToken: string): Promise<UserData> => {
-    const response = await fetcher('GET /v1/users/me', {}, {
-      headers: {
-        'authorization': `Bearer ${accessToken}`
-      }
-    })
+  const fetchUserData = useCallback(async (accessToken?: string): Promise<UserData> => {
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      // eslint-disable-next-line @typescript-eslint/dot-notation
+      headers['authorization'] = `Bearer ${accessToken}`;
+    }
+
+    const response = await fetcher('GET /v1/users/me', {}, { headers });
 
     if (!response.ok) {
       throw new Error(response.data.message);
@@ -52,7 +54,7 @@ function AuthProvider(props: AuthProviderProps): ReactNode {
       name: user.displayName,
       email: user.email ?? '', // user might not have an email , so default to empty string
     };
-  }
+  }, [fetcher]);
 
   // Convert API response to TokensData format
   const convertTokenResponse = (response: {
@@ -93,7 +95,7 @@ function AuthProvider(props: AuthProviderProps): ReactNode {
       setTokens(null)
       setCurrentUser(null)
     })
-  }, [initialTokens])
+  }, [initialTokens, fetchUserData])
 
   // Handle auth changes
   useEffect(() => {
