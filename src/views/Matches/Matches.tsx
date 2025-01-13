@@ -9,7 +9,6 @@ import useMatches from "./useMatches.ts";
 import MatchesTableHeader from "./components/MatchesTableHeader.tsx";
 import MatchesTableRow from "./components/MatchesTableRow.tsx";
 import MatchesPagination from "./components/MatchesPagination.tsx";
-import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import { downloadMatchesAsCsv } from '@/lib/utils/matchesExport'
 import { useApiFetcher } from '@/lib/api'
 
@@ -22,6 +21,10 @@ export function Matches(props: MatchesProps) {
   const { matches, total, page, size, setPage, setSize } = useMatches()
   const fetcher = useApiFetcher();
 
+  const handleDownloadClick = async ():Promise<void> => {
+    await downloadMatchesAsCsv(fetcher);
+  }
+
   return (
     <Stack {...otherProps}>
       <Stack direction="row" marginBottom={2} justifyContent="space-between" alignItems="center">
@@ -29,8 +32,15 @@ export function Matches(props: MatchesProps) {
         <Stack direction="row" justifyContent="space-between">
           <Button
             size="small"
-            startIcon={<FileDownloadIcon />}
-            onClick={ async () => { await downloadMatchesAsCsv(fetcher); return; } }
+            variant="contained"
+            onClick={
+              () => {
+                void (async () => {
+                  await handleDownloadClick();
+                })();
+              }
+            }
+            sx={{ marginRight: 2 }}
           >
             Download CSV
           </Button>
