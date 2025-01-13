@@ -48,7 +48,7 @@ export async function downloadMatchesAsCsv(fetcher: ApiFetcher): Promise<void> {
     downloadCsvFile(csv)
 }
 
-function downloadCsvFile(csv: string) {
+export function downloadCsvFile(csv: string) {
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
