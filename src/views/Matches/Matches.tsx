@@ -1,5 +1,3 @@
-import { useState } from 'react'
-import useSWR from 'swr'
 import Avatar from '@mui/material/Avatar'
 import AvatarGroup from '@mui/material/AvatarGroup'
 import Button from '@mui/material/Button'
@@ -14,8 +12,7 @@ import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
-import { useApiFetcher } from '@/lib/api'
-import { Match } from '@/lib/api-types'
+import {useMatches} from "./useMatches.ts";
 
 export interface MatchesProps {
   onLogoutRequest?: () => void
@@ -23,26 +20,7 @@ export interface MatchesProps {
 
 export function Matches(props: MatchesProps) {
   const { onLogoutRequest, ...otherProps } = props
-  const [page, setPage] = useState<number>(0)
-  const [size, setSize] = useState<number>(10)
-  const fetcher = useApiFetcher()
-  const query = useSWR(
-    { page, size },
-    async ({ page, size }: { page: number, size: number}): Promise<{ matches: Match[], total: number }> => {
-      const res = await fetcher('GET /v1/matches', { page, size })
-
-      if (!res.ok) {
-        throw new Error(res.data.message)
-      }
-
-      const totalCount = res.headers.get('total')
-      const total = totalCount ? Number.parseInt(totalCount) : res.data.length
-      return { matches: res.data, total }
-    },
-    { keepPreviousData: true, suspense: true },
-  )
-  const matches: Match[] = query.data.matches
-  const total: number = query.data.total
+  const { matches, total, page, size, setPage, setSize } = useMatches()
 
   return (
     <Stack {...otherProps}>
