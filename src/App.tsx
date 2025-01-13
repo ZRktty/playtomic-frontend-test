@@ -42,18 +42,18 @@ function AppRouter() {
         <Route path="/login">
           {auth.currentUser
             ? <Redirect to="/matches" />
-            : <Login initialValues={{ email: 'alice@playtomic.io' }}/>}
+            : <Login initialValues={{ email: 'alice@playtomic.io' }} />}
         </Route>
-      
+
         <Route path="/matches">
           {auth.currentUser
             ? <Matches
-                onLogoutRequest={() => {
-                  auth.logout().catch(error => {
-                    console.error('error while logging out', error)
-                  })
-                }}
-              />
+              onLogoutRequest={() => {
+                auth.logout().catch(error => {
+                  console.error('error while logging out', error)
+                })
+              }}
+            />
             : <Redirect to="/login" />}
         </Route>
 
@@ -77,7 +77,7 @@ function AppRouter() {
 function ApiAuthConfigProvider(props: { children: ReactNode }) {
   const auth = useAuth()
 
-  const defaultHeaders = useMemo(() =>  {
+  const defaultHeaders = useMemo(() => {
     const headers = new Headers({
       'x-requested-with': 'playtomic-frontend-tech-task'
     })
