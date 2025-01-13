@@ -41,3 +41,5 @@ export function useMatches(): UseMatchesResult {
     setSize,
   }
 }
+
+export default useMatches;

@@ -1,26 +1,22 @@
-import Avatar from '@mui/material/Avatar'
-import AvatarGroup from '@mui/material/AvatarGroup'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import Stack from '@mui/material/Stack'
 import Table from '@mui/material/Table'
 import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
 import TableContainer from '@mui/material/TableContainer'
-import TablePagination from '@mui/material/TablePagination'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
-import {useMatches} from "./useMatches.ts";
+import useMatches from "./useMatches.ts";
+import MatchesTableHeader from "./components/MatchesTableHeader.tsx";
+import MatchesTableRow from "./components/MatchesTableRow.tsx";
+import MatchesPagination from "./components/MatchesPagination.tsx";
 
 export interface MatchesProps {
   onLogoutRequest?: () => void
 }
 
 export function Matches(props: MatchesProps) {
-  const { onLogoutRequest, ...otherProps } = props
-  const { matches, total, page, size, setPage, setSize } = useMatches()
+  const {onLogoutRequest, ...otherProps} = props
+  const {matches, total, page, size, setPage, setSize} = useMatches()
 
   return (
     <Stack {...otherProps}>
@@ -31,55 +27,22 @@ export function Matches(props: MatchesProps) {
         </Stack>
       </Stack>
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="Matches">
-          <TableHead>
-            <TableRow>
-              <TableCell>Sport</TableCell>
-              <TableCell>Date</TableCell>
-              <TableCell>Start</TableCell>
-              <TableCell>End</TableCell>
-              <TableCell>Players</TableCell>
-            </TableRow>
-          </TableHead>
+        <Table sx={{minWidth: 650}} aria-label="Matches">
+          <MatchesTableHeader/>
           <TableBody>
-            {matches.map((match) => {
-              // Remember, match dates look like: 2024-01-04T09:00Z
-              const startDate = match.startDate.substring(0, 10)
-              const startTime = match.startDate.substring(11, 16)
-              const endTime = match.endDate.substring(11, 16)
-
-              return (
-                <TableRow key={match.matchId}>
-                  <TableCell>
-                    <Chip size="small" label={match.sport} />
-                  </TableCell>
-                  <TableCell>{startDate}</TableCell>
-                  <TableCell>{startTime}</TableCell>
-                  <TableCell>{endTime}</TableCell>
-                  <TableCell align="left">
-                    <AvatarGroup max={4} sx={{ flexDirection: 'row' }}>
-                      {match.teams.flatMap(team => team.players).map(player => (
-                        <Avatar key={player.userId} sx={{ width: 28, height: 28 }} alt={player.displayName} src={player.pictureURL ?? undefined} />
-                      ))}
-                    </AvatarGroup>
-                  </TableCell>
-                </TableRow>
-              )}
+            {matches.map((match) => (
+                <MatchesTableRow key={match.matchId} match={match}/>
+              )
             )}
           </TableBody>
         </Table>
-        
       </TableContainer>
-      <TablePagination
-        component="div"
-        count={total}
+      <MatchesPagination
+        total={total}
         page={page}
-        rowsPerPage={size}
-        onPageChange={(_, page) => { setPage(page) }}
-        onRowsPerPageChange={ev => {
-          setSize(parseInt(ev.target.value, 10))
-          setPage(0)
-        }}
+        size={size}
+        onPageChange={setPage}
+        onSizeChange={setSize}
       />
     </Stack>
   )
