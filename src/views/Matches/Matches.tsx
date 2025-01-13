@@ -9,30 +9,41 @@ import useMatches from "./useMatches.ts";
 import MatchesTableHeader from "./components/MatchesTableHeader.tsx";
 import MatchesTableRow from "./components/MatchesTableRow.tsx";
 import MatchesPagination from "./components/MatchesPagination.tsx";
+import FileDownloadIcon from '@mui/icons-material/FileDownload'
+import { downloadMatchesAsCsv } from '@/lib/utils/matchesExport'
+import { useApiFetcher } from '@/lib/api'
 
 export interface MatchesProps {
   onLogoutRequest?: () => void
 }
 
 export function Matches(props: MatchesProps) {
-  const {onLogoutRequest, ...otherProps} = props
-  const {matches, total, page, size, setPage, setSize} = useMatches()
+  const { onLogoutRequest, ...otherProps } = props
+  const { matches, total, page, size, setPage, setSize } = useMatches()
+  const fetcher = useApiFetcher();
 
   return (
     <Stack {...otherProps}>
       <Stack direction="row" marginBottom={2} justifyContent="space-between" alignItems="center">
         <Typography variant="h2">Matches</Typography>
         <Stack direction="row" justifyContent="space-between">
+          <Button
+            size="small"
+            startIcon={<FileDownloadIcon />}
+            onClick={() => downloadMatchesAsCsv(fetcher)}
+          >
+            Download CSV
+          </Button>
           <Button size="small" onClick={onLogoutRequest}>Logout</Button>
         </Stack>
       </Stack>
       <TableContainer component={Paper}>
-        <Table sx={{minWidth: 650}} aria-label="Matches">
-          <MatchesTableHeader/>
+        <Table sx={{ minWidth: 650 }} aria-label="Matches">
+          <MatchesTableHeader />
           <TableBody>
             {matches.map((match) => (
-                <MatchesTableRow key={match.matchId} match={match}/>
-              )
+              <MatchesTableRow key={match.matchId} match={match} />
+            )
             )}
           </TableBody>
         </Table>
