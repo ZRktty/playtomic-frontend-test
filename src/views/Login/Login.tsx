@@ -123,7 +123,7 @@ export function Login(props: LoginProps) {
               type="password"
               name="password"  // Add name attribute
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value) }}
               disabled={isSubmitting}
               autoComplete="current-password"
               inputProps={{

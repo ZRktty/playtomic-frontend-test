@@ -30,7 +30,7 @@ export function Matches(props: MatchesProps) {
           <Button
             size="small"
             startIcon={<FileDownloadIcon />}
-            onClick={() => downloadMatchesAsCsv(fetcher)}
+            onClick={ async () => { await downloadMatchesAsCsv(fetcher); return; } }
           >
             Download CSV
           </Button>

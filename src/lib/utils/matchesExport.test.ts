@@ -90,12 +90,10 @@ describe('downloadCsvFile', () => {
 
         // Verify link creation and attributes
         const link = document.createElement('a')
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(link.setAttribute).toHaveBeenCalledWith('href', 'mock-url')
         expect(link.setAttribute).toHaveBeenCalledWith('download', expect.stringMatching(/^matches-\d{4}-\d{2}-\d{2}\.csv$/))
 
         // Verify link was appended to the document and clicked
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(document.body.appendChild).toHaveBeenCalledWith(link)
         expect(link.click).toHaveBeenCalled()
 
