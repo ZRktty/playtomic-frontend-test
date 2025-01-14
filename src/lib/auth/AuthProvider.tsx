@@ -1,9 +1,10 @@
-import { ReactNode, useCallback, useEffect, useState} from 'react'
+import { ReactNode, useCallback, useEffect, useState } from 'react'
 import { Auth, AuthInitializeConfig, TokensData, UserData } from './types'
 import { useApiFetcher } from "@/lib/api";
 import { useFetchUserData } from "@/lib/auth/hooks/useFetchUserData.ts";
 import { AuthContext } from "./AuthContext.ts";
 import { convertTokenResponse } from "@/lib/auth/utils.ts";
+import { useAuthRefresh } from './hooks/useAuthRefresh';
 
 interface AuthProviderProps extends AuthInitializeConfig {
   children?: ReactNode
@@ -32,6 +33,20 @@ function AuthProvider(props: AuthProviderProps): ReactNode {
   const fetchUserData = useFetchUserData();
   const [currentUser, setCurrentUser] = useState<UserData | null | undefined>(undefined);
   const [tokens, setTokens] = useState<TokensData | null | undefined>(undefined);
+
+
+  // Add refresh hook
+  useAuthRefresh(tokens ?? null, (newTokens) => {
+    // Update tokens state
+    setTokens(newTokens);
+    // Propagate change
+    onAuthChange?.(newTokens);
+
+    // If refresh failed (newTokens is null), clear user
+    if (!newTokens) {
+      setCurrentUser(null);
+    }
+  });
 
   // Handle initial tokens loading
   useEffect(() => {
@@ -121,4 +136,4 @@ function AuthProvider(props: AuthProviderProps): ReactNode {
   )
 }
 
-export {AuthProvider, type AuthProviderProps}
+export { AuthProvider, type AuthProviderProps }
