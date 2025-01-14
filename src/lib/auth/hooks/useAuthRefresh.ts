@@ -2,10 +2,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useApiFetcher } from '@/lib/api';
 import { TokensData } from '@/lib/auth/types';
 
-export const isTokenExpired = (expiresAt: string): boolean => {
-    return new Date(expiresAt).getTime() <= Date.now();
-};
-
 export const shouldRefreshToken = (expiresAt: string): boolean => {
     const refreshBuffer = 5 * 60 * 1000; // 5 minutes
     return new Date(expiresAt).getTime() - refreshBuffer <= Date.now();
@@ -16,7 +12,7 @@ export function useAuthRefresh(tokens: TokensData | null, onAuthChange?: (tokens
     const timerRef = useRef<NodeJS.Timeout>();
 
     const refresh = useCallback(async () => {
-        if (!tokens?.refresh || !tokens?.accessExpiresAt) return;
+        if (!tokens?.refresh || !tokens.accessExpiresAt) return;
 
         try {
             if (shouldRefreshToken(tokens.accessExpiresAt)) {
@@ -44,8 +40,10 @@ export function useAuthRefresh(tokens: TokensData | null, onAuthChange?: (tokens
     }, [tokens, fetcher, onAuthChange]);
 
     useEffect(() => {
-        refresh();
-        timerRef.current = setInterval(refresh, 60000); // Check every minute
+        void refresh();
+        timerRef.current = setInterval(() => {
+            void refresh();
+        }, 60000); // Check every minute
 
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
